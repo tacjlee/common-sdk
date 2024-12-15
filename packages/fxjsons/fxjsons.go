@@ -15,7 +15,7 @@ func GetAllJsonNodeFieldNames(node map[string]any) []string {
 
 func GetPropertyValueAsString(row map[string]any, key string) string {
 	value, exists := row[key]
-	if !exists {
+	if !exists || value == nil {
 		return ""
 	}
 	result := fmt.Sprintf("%v", value)
