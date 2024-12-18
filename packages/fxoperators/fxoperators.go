@@ -1,8 +1,12 @@
 package fxoperators
 
+import "reflect"
+
 func If(condition bool, trueVal any, falseVal any) any {
+	value := falseVal
 	if condition {
-		return trueVal
+		value = trueVal
 	}
-	return falseVal
+	result := reflect.ValueOf(value)
+	return reflect.Indirect(result).Interface()
 }
