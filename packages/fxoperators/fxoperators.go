@@ -1,8 +1,8 @@
 package fxoperators
 
-func If[T any](condition bool, trueVal interface{}, falseVal interface{}) T {
+func If(condition bool, trueVal any, falseVal any) any {
 	if condition {
-		return trueVal.(T)
+		return trueVal
 	}
-	return falseVal.(T)
+	return falseVal
 }
