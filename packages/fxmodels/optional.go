@@ -14,11 +14,11 @@ func (o Optional[T]) Get() T {
 	return *o.Value
 }
 
-func (o Optional[T]) IsNilOrEmpty() bool {
+func (o Optional[T]) IsNil() bool {
 	return o.Value == nil
 }
 
-func (o Optional[T]) GetOrEmpty() T {
+func (o Optional[T]) GetPresentOrEmpty() T {
 	var model T
 	if o.Value != nil {
 		return *o.Value
