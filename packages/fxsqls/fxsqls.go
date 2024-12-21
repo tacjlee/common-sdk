@@ -24,11 +24,18 @@ func FindFirst[T any](db *gorm.DB, fieldName string, fieldValue any) (T, error) 
 
 func FindOptionalObjectById[T any](db *gorm.DB, id interface{}) (fxmodels.Optional[T], error) {
 	var results T
-	parsedUUID, err := uuid.Parse(id.(string))
-	if err != nil {
-		return fxmodels.Optional[T]{Value: nil}, nil
+	var inputId uuid.UUID
+	inputType := reflect.TypeOf(id)
+	if inputType == reflect.TypeOf(uuid.UUID{}) {
+		inputId = id.(uuid.UUID)
+	} else {
+		parsedUUID, err := uuid.Parse(id.(string))
+		if err != nil {
+			return fxmodels.Optional[T]{Value: nil}, nil
+		}
+		inputId = parsedUUID
 	}
-	if err := db.First(&results, parsedUUID).Error; err != nil {
+	if err := db.First(&results, inputId).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return fxmodels.Optional[T]{Value: nil}, nil
 		}
