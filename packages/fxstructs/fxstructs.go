@@ -32,19 +32,13 @@ func GetAllStructFieldNames(inputStruct any) ([]string, error) {
 func CloneTo[T any](input any) (T, error) {
 	var cloned T
 	// Use reflection to copy the fields from the input to the cloned value
-	// Get the reflection Value of the input struct
 	srcValue := reflect.ValueOf(input)
 	dstField := reflect.ValueOf(&cloned)
-	if srcValue.Kind() != reflect.Ptr {
-		return cloned, fmt.Errorf("input must be pointers to structs")
-	}
-	srcElem := srcValue.Elem()
 	dstElem := dstField.Elem()
 	// Iterate through the fields of the source struct
-	for i := 0; i < srcElem.NumField(); i++ {
-		srcField := srcElem.Field(i)
-		dstField := dstElem.FieldByName(srcElem.Type().Field(i).Name)
-
+	for i := 0; i < srcValue.NumField(); i++ {
+		srcField := srcValue.Field(i)
+		dstField := dstElem.FieldByName(srcValue.Type().Field(i).Name)
 		// Check if the field exists in the destination and is settable
 		if dstField.IsValid() && dstField.CanSet() {
 			dstField.Set(srcField)
