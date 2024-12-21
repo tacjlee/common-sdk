@@ -29,23 +29,17 @@ func GetAllStructFieldNames(inputStruct any) ([]string, error) {
 	return fieldNames, nil
 }
 
-func CloneStruct(source, destination interface{}) error {
-	srcValue := reflect.ValueOf(source)
-	dstValue := reflect.ValueOf(destination)
-
-	// Ensure both are pointers to structs
-	if srcValue.Kind() != reflect.Ptr || dstValue.Kind() != reflect.Ptr {
-		return fmt.Errorf("both source and destination must be pointers to structs")
+func CloneTo[T any](input any) (T, error) {
+	var cloned T
+	// Use reflection to copy the fields from the input to the cloned value
+	// Get the reflection Value of the input struct
+	srcValue := reflect.ValueOf(input)
+	dstField := reflect.ValueOf(&cloned)
+	if srcValue.Kind() != reflect.Ptr {
+		return cloned, fmt.Errorf("input must be pointers to structs")
 	}
-
 	srcElem := srcValue.Elem()
-	dstElem := dstValue.Elem()
-
-	// Ensure the underlying types are structs
-	if srcElem.Kind() != reflect.Struct || dstElem.Kind() != reflect.Struct {
-		return fmt.Errorf("both source and destination must point to structs")
-	}
-
+	dstElem := dstField.Elem()
 	// Iterate through the fields of the source struct
 	for i := 0; i < srcElem.NumField(); i++ {
 		srcField := srcElem.Field(i)
@@ -56,8 +50,7 @@ func CloneStruct(source, destination interface{}) error {
 			dstField.Set(srcField)
 		}
 	}
-
-	return nil
+	return cloned, nil
 }
 
 func IsEmpty(value interface{}) bool {
