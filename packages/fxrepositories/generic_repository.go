@@ -39,8 +39,7 @@ func (this *genericRepository) GetDB() *gorm.DB {
 }
 
 // For update, delete command
-func (this *genericRepository) ExecuteNonQuery(command string, params ...any) (int64, error) {
-	query := fxstrings.ToSqlCase(command)
+func (this *genericRepository) ExecuteNonQuery(query string, params ...any) (int64, error) {
 	result := this.db.Exec(query, params...)
 	if result.Error != nil {
 		return 0, result.Error
@@ -49,8 +48,7 @@ func (this *genericRepository) ExecuteNonQuery(command string, params ...any) (i
 	return rowsAffected, nil
 }
 
-func (this *genericRepository) ExecuteJsonList(command string, params ...any) ([]map[string]any, error) {
-	query := fxstrings.ToSqlCase(command)
+func (this *genericRepository) ExecuteJsonList(query string, params ...any) ([]map[string]any, error) {
 	rows, err := this.db.Raw(query, params...).Rows()
 	if err != nil {
 		return nil, err
@@ -85,8 +83,7 @@ func (this *genericRepository) ExecuteJsonList(command string, params ...any) ([
 	return result, nil
 }
 
-func (this *genericRepository) ExecuteJsonPaging(command string, pageable fxmodels.Pageable, params ...any) (map[string]any, error) {
-	query := fxstrings.ToSqlCase(command)
+func (this *genericRepository) ExecuteJsonPaging(query string, pageable fxmodels.Pageable, params ...any) (map[string]any, error) {
 	countingSql := this.buildCountingQuery(query)
 	totalItems, err := this.ExecuteScalarAsLong(countingSql, params...)
 	if err != nil {
@@ -115,8 +112,7 @@ func (this *genericRepository) ExecuteJsonPaging(command string, pageable fxmode
 	return result, nil
 }
 
-func (this *genericRepository) ExecuteKeyValueList(keyAlias string, valueAlias string, command string, params ...any) ([]map[string]any, error) {
-	query := fxstrings.ToSqlCase(command)
+func (this *genericRepository) ExecuteKeyValueList(keyAlias string, valueAlias string, query string, params ...any) ([]map[string]any, error) {
 	rows, err := this.db.Raw(query, params...).Rows()
 	if err != nil {
 		return nil, err
@@ -152,8 +148,7 @@ func (this *genericRepository) ExecuteKeyValueList(keyAlias string, valueAlias s
 	return result, nil
 }
 
-func (this *genericRepository) ExecuteJsonObject(command string, params ...any) (map[string]any, error) {
-	query := fxstrings.ToSqlCase(command)
+func (this *genericRepository) ExecuteJsonObject(query string, params ...any) (map[string]any, error) {
 	rows, err := this.db.Raw(query, params...).Rows()
 	if err != nil {
 		return nil, err
@@ -183,8 +178,7 @@ func (this *genericRepository) ExecuteJsonObject(command string, params ...any) 
 	return rowMap, nil
 }
 
-func (this *genericRepository) ExecuteStringList(command string, params ...any) ([]string, error) {
-	query := fxstrings.ToSqlCase(command)
+func (this *genericRepository) ExecuteStringList(query string, params ...any) ([]string, error) {
 	rows, err := this.db.Raw(query, params...).Rows()
 	if err != nil {
 		return nil, err
@@ -214,8 +208,7 @@ func (this *genericRepository) ExecuteStringList(command string, params ...any) 
 	return result, nil
 }
 
-func (this *genericRepository) ExecuteScalar(command string, params ...any) (any, error) {
-	query := fxstrings.ToSqlCase(command)
+func (this *genericRepository) ExecuteScalar(query string, params ...any) (any, error) {
 	rows, err := this.db.Raw(query, params...).Rows()
 	if err != nil {
 		return nil, err
@@ -245,8 +238,7 @@ func (this *genericRepository) ExecuteScalar(command string, params ...any) (any
 	return result, nil
 }
 
-func (this *genericRepository) ExecuteScalarAsBool(command string, params ...any) (bool, error) {
-	query := fxstrings.ToSqlCase(command)
+func (this *genericRepository) ExecuteScalarAsBool(query string, params ...any) (bool, error) {
 	value, err := this.ExecuteScalar(query, params...)
 	if err != nil {
 		return false, err
@@ -259,8 +251,7 @@ func (this *genericRepository) ExecuteScalarAsBool(command string, params ...any
 	}
 }
 
-func (this *genericRepository) ExecuteScalarAsLong(command string, params ...any) (int64, error) {
-	query := fxstrings.ToSqlCase(command)
+func (this *genericRepository) ExecuteScalarAsLong(query string, params ...any) (int64, error) {
 	value, err := this.ExecuteScalar(query, params...)
 	if err != nil {
 		return 0, err
@@ -268,8 +259,7 @@ func (this *genericRepository) ExecuteScalarAsLong(command string, params ...any
 	return value.(int64), nil
 }
 
-func (this *genericRepository) ExecuteScalarAsString(command string, params ...any) (string, error) {
-	query := fxstrings.ToSqlCase(command)
+func (this *genericRepository) ExecuteScalarAsString(query string, params ...any) (string, error) {
 	value, err := this.ExecuteScalar(query, params...)
 	if err != nil {
 		return "", err
@@ -332,8 +322,7 @@ func (this *genericRepository) buildSortingClause(order string) string {
 	return result
 }
 
-func (this *genericRepository) buildCountingQuery(command string) string {
-	query := fxstrings.ToSqlCase(command)
+func (this *genericRepository) buildCountingQuery(query string) string {
 	result := fmt.Sprintf("Select count(0) from (%s) alias", query)
 	return result
 }
