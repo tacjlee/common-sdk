@@ -32,11 +32,11 @@ func PascalToCamel(pascal string) string {
 	return string(runes)
 }
 
-func ToSnakeCase(kebab string) string {
+func ToSnakeCase(input string) string {
 	// Regular expression to match uppercase letters or delimiters
 	reg := regexp.MustCompile(`[A-Z][a-z]*|[a-z]+|\d+`)
 	// Find all words in the string
-	words := reg.FindAllString(kebab, -1)
+	words := reg.FindAllString(input, -1)
 	// Join words with underscores and convert to lowercase
 	return strings.ToLower(strings.Join(words, "_"))
 }
@@ -101,4 +101,21 @@ func StringToIsoDateTime(s string, defaultValue time.Time) time.Time {
 		return defaultValue
 	}
 	return datetime
+}
+
+func ToSqlCase(s string) string {
+	var result []rune
+	for i, r := range s {
+		// If the rune is an uppercase letter, convert to lowercase and insert an underscore if not the first letter
+		if unicode.IsUpper(r) {
+			if i > 0 {
+				result = append(result, '_')
+			}
+			result = append(result, unicode.ToLower(r))
+		} else {
+			// Append characters as they are
+			result = append(result, r)
+		}
+	}
+	return string(result)
 }
