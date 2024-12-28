@@ -5,15 +5,17 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/tacjlee/common-sdk/packages/fxmodels"
+	"github.com/tacjlee/common-sdk/packages/fxstrings"
 	"gorm.io/gorm"
 	"reflect"
 )
 
 func FindFirst[T any](db *gorm.DB, fieldName string, fieldValue any) (T, error) {
 	var result T
+	normalizedFieldName := fxstrings.ToSqlCase(fieldName)
 	var params map[string]any
 	params = make(map[string]any)
-	params[fieldName] = fieldValue
+	params[normalizedFieldName] = fieldValue
 	query := db.Where(params)
 	err := query.First(&result).Error
 	if err != nil {
@@ -44,8 +46,9 @@ func FindOptionalObjectById[T any](db *gorm.DB, id interface{}) (fxmodels.Option
 	return fxmodels.Optional[T]{Value: &results}, nil
 }
 
-func ExecuteModelList[T any](db *gorm.DB, query string, params ...any) ([]T, error) {
+func ExecuteModelList[T any](db *gorm.DB, command string, params ...any) ([]T, error) {
 	var results []T
+	query := fxstrings.ToSqlCase(command)
 	tx := db.Raw(query, params...).Scan(&results)
 	if tx.Error != nil {
 		if tx.Error == gorm.ErrRecordNotFound {
@@ -56,8 +59,9 @@ func ExecuteModelList[T any](db *gorm.DB, query string, params ...any) ([]T, err
 	return results, nil
 }
 
-func ExecuteModelObject[T any](db *gorm.DB, query string, params ...any) (T, error) {
+func ExecuteModelObject[T any](db *gorm.DB, command string, params ...any) (T, error) {
 	var result T
+	query := fxstrings.ToSqlCase(command)
 	if err := db.Raw(query, params...).First(&result).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return result, nil
@@ -68,8 +72,9 @@ func ExecuteModelObject[T any](db *gorm.DB, query string, params ...any) (T, err
 	return result, nil
 }
 
-func ExecuteOptionalObject[T any](db *gorm.DB, query string, params ...any) (fxmodels.Optional[T], error) {
+func ExecuteOptionalObject[T any](db *gorm.DB, command string, params ...any) (fxmodels.Optional[T], error) {
 	var result T
+	query := fxstrings.ToSqlCase(command)
 	if err := db.Raw(query, params...).First(&result).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return fxmodels.Optional[T]{Value: nil}, nil
