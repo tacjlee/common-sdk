@@ -1,6 +1,7 @@
 package fxstrings
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
 	"regexp"
@@ -101,4 +102,13 @@ func StringToIsoDateTime(s string, defaultValue time.Time) time.Time {
 		return defaultValue
 	}
 	return datetime
+}
+
+func StringToJsonArray(s string) ([]map[string]any, error) {
+	var result []map[string]any
+	ex := json.Unmarshal([]byte(s), &result)
+	if ex != nil {
+		return nil, ex
+	}
+	return result, nil
 }
