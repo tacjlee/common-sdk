@@ -7,6 +7,7 @@ type RealmAccess struct {
 }
 
 type TokenClaims struct {
+	Email          string      `json:"email"`
 	RealmAccess    RealmAccess `json:"realm_access"`
 	ResourceAccess map[string]struct {
 		Roles []string `json:"roles"`
