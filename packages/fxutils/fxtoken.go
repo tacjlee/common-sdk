@@ -93,3 +93,21 @@ func ExtractKeycloakRoles(keycloakToken string) ([]string, error) {
 	}
 	return roles, nil
 }
+
+func ExtractTokenClaims[T any](jwtToken string) (T, error) {
+	var claims T
+	parts := strings.Split(jwtToken, ".")
+	if len(parts) != 3 {
+		return claims, fmt.Errorf("invalid JWT token format")
+	}
+	// Base64 decode the payload part (the second segment of the JWT)
+	payload, err := jwt.DecodeSegment(parts[1])
+	if err != nil {
+		return claims, fmt.Errorf("failed to decode token payload: %v", err)
+	}
+	// Parse the payload into a struct
+	if err := json.Unmarshal(payload, &claims); err != nil {
+		return claims, fmt.Errorf("failed to unmarshal token claims: %v", err)
+	}
+	return claims, nil
+}
