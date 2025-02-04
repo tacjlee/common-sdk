@@ -21,10 +21,10 @@ type IGenericRepository interface {
 	ExecuteScalarAsBool(query string, params ...any) (bool, error)
 	ExecuteScalarAsString(query string, params ...any) (string, error)
 	ExecuteScalarAsLong(query string, params ...any) (int64, error)
-	Save(record interface{}) (int64, error)
+	Save(record any) (any, error)
 	Delete(model any, conditions ...any) (int64, error)
 	DeleteAll(models []any) (int64, error)
-	Create(value interface{}) (tx *gorm.DB)
+	Create(value any) (any, error)
 }
 type genericRepository struct {
 	db *gorm.DB
@@ -268,13 +268,13 @@ func (this *genericRepository) ExecuteScalarAsString(query string, params ...any
 	return str, nil
 }
 
-func (this *genericRepository) Save(record any) (int64, error) {
+func (this *genericRepository) Save(record any) (any, error) {
 	// Use db.Save for upsert behavior (Insert or Update if record already exists)
 	result := this.db.Save(record)
 	if result.Error != nil {
-		return 0, result.Error
+		return nil, result.Error
 	}
-	return result.RowsAffected, nil
+	return record, nil
 }
 
 func (this *genericRepository) Delete(model any, conditions ...any) (int64, error) {
@@ -327,7 +327,10 @@ func (this *genericRepository) buildCountingQuery(query string) string {
 	return result
 }
 
-func (this *genericRepository) Create(value interface{}) (tx *gorm.DB) {
-	result := this.db.Create(&value)
-	return result
+func (this *genericRepository) Create(model interface{}) (any, error) {
+	result := this.db.Create(&model)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return model, nil
 }
