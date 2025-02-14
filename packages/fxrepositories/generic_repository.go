@@ -21,10 +21,10 @@ type IGenericRepository interface {
 	ExecuteScalarAsBool(query string, params ...any) (bool, error)
 	ExecuteScalarAsString(query string, params ...any) (string, error)
 	ExecuteScalarAsLong(query string, params ...any) (int64, error)
+	Create(value any) (any, error)
 	Save(record any) (any, error)
 	Delete(model any, conditions ...any) (int64, error)
 	DeleteAll(models []any) (int64, error)
-	Create(value any) (any, error)
 }
 type genericRepository struct {
 	db *gorm.DB
@@ -68,8 +68,8 @@ func (this *genericRepository) ExecuteJsonList(query string, params ...any) ([]m
 			columnPointers[i] = &columnsData[i]
 		}
 		// Scan the row into the slice
-		if err := rows.Scan(columnPointers...); err != nil {
-			return nil, err
+		if ex := rows.Scan(columnPointers...); ex != nil {
+			return nil, ex
 		}
 		// Create a map to hold column names and their values
 		rowMap := make(map[string]interface{})
@@ -135,8 +135,8 @@ func (this *genericRepository) ExecuteKeyValueList(keyAlias string, valueAlias s
 			columnPointers[i] = &columnsData[i]
 		}
 		// Scan the row into the slice
-		if err := rows.Scan(columnPointers...); err != nil {
-			return nil, err
+		if ex := rows.Scan(columnPointers...); ex != nil {
+			return nil, ex
 		}
 		// Create a map to hold column names and their values
 		rowMap := make(map[string]interface{})
@@ -167,8 +167,8 @@ func (this *genericRepository) ExecuteJsonObject(query string, params ...any) (m
 			columnPointers[i] = &columnsData[i]
 		}
 		// Scan the row into the slice
-		if err := rows.Scan(columnPointers...); err != nil {
-			return nil, err
+		if ex := rows.Scan(columnPointers...); ex != nil {
+			return nil, ex
 		}
 		for i, col := range columns {
 			jsonField := fxstrings.ToJsonCase(col)
@@ -197,8 +197,8 @@ func (this *genericRepository) ExecuteStringList(query string, params ...any) ([
 			columnPointers[i] = &columnsData[i]
 		}
 		// Scan the row into the slice
-		if err := rows.Scan(columnPointers...); err != nil {
-			return nil, err
+		if ex := rows.Scan(columnPointers...); ex != nil {
+			return nil, ex
 		}
 		strValue := fxstrings.ToString(columnsData[0])
 		if strValue != "" {
@@ -228,8 +228,8 @@ func (this *genericRepository) ExecuteScalar(query string, params ...any) (any, 
 			columnPointers[i] = &columnsData[i]
 		}
 		// Scan the row into the slice
-		if err := rows.Scan(columnPointers...); err != nil {
-			return nil, err
+		if ex := rows.Scan(columnPointers...); ex != nil {
+			return nil, ex
 		}
 		// Return the first column value in the first row
 		result = columnsData[0]
@@ -268,9 +268,17 @@ func (this *genericRepository) ExecuteScalarAsString(query string, params ...any
 	return str, nil
 }
 
+func (this *genericRepository) Create(model interface{}) (any, error) {
+	result := this.db.Create(&model)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return model, nil
+}
+
 func (this *genericRepository) Save(record any) (any, error) {
 	// Use db.Save for upsert behavior (Insert or Update if record already exists)
-	result := this.db.Save(record)
+	result := this.db.Save(&record)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -325,12 +333,4 @@ func (this *genericRepository) buildSortingClause(order string) string {
 func (this *genericRepository) buildCountingQuery(query string) string {
 	result := fmt.Sprintf("Select count(0) from (%s) alias", query)
 	return result
-}
-
-func (this *genericRepository) Create(model interface{}) (any, error) {
-	result := this.db.Create(&model)
-	if result.Error != nil {
-		return nil, result.Error
-	}
-	return model, nil
 }
