@@ -269,7 +269,7 @@ func (this *genericRepository) ExecuteScalarAsString(query string, params ...any
 }
 
 func (this *genericRepository) Create(model interface{}) (any, error) {
-	result := this.db.Create(&model)
+	result := this.db.Create(model)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -278,7 +278,7 @@ func (this *genericRepository) Create(model interface{}) (any, error) {
 
 func (this *genericRepository) Save(record any) (any, error) {
 	// Use db.Save for upsert behavior (Insert or Update if record already exists)
-	result := this.db.Save(&record)
+	result := this.db.Save(record)
 	if result.Error != nil {
 		return nil, result.Error
 	}
