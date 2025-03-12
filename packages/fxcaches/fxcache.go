@@ -58,3 +58,11 @@ func GetIfPresent(key string) interface{} {
 		return nil
 	}
 }
+
+func Clear() {
+	FxCache.Clear()
+}
+
+func Delete(key interface{}) {
+	FxCache.Del(key)
+}
