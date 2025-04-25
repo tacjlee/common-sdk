@@ -24,7 +24,7 @@ func NewGoogleAuthenticationService(issuer string, secret string) IGoogleAuthent
 }
 
 func (this *googleAuthenticationService) GenerateKey(accountName string) (*otp.Key, error) {
-	secretKey := this.issuer + "@" + this.secret + "@" + accountName
+	secretKey := this.issuer + "_" + this.secret + "_" + accountName
 	encoder := base32.StdEncoding
 	secretBase32Encoding := encoder.EncodeToString([]byte(secretKey))
 	key, err := totp.Generate(totp.GenerateOpts{
