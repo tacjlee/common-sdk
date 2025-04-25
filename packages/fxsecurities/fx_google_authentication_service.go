@@ -6,6 +6,7 @@ import (
 	"github.com/pquerna/otp"
 	"github.com/pquerna/otp/totp"
 	"image/png"
+	"net/url"
 )
 
 type IGoogleAuthenticationService interface {
@@ -29,11 +30,14 @@ func (this *googleAuthenticationService) GenerateKey(accountName string) (*otp.K
 	//If You Want to Derive a Secret (Not Recommended), At Least Normalize It
 	secretBase32 := base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString([]byte(secretKey))
 
+	// Make account name URL-safe
+	encodedAccountName := url.QueryEscape(accountName)
+
 	//totp.Generate() is for generating new keys, and it randomizes parts of the key
 	//so we should manually construct the TOTP key (should not
-	key, err := otp.NewKeyFromURL("otpauth://totp/" + this.issuer + ":" + accountName +
+	key, err := otp.NewKeyFromURL("otpauth://totp/" + this.issuer + ":" + encodedAccountName +
 		"?secret=" + secretBase32 +
-		"&issuer=" + this.issuer +
+		"&issuer=" + url.QueryEscape(this.issuer) + // just in case
 		"&algorithm=SHA1&digits=6&period=30")
 	return key, err
 }
