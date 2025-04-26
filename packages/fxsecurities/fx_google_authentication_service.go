@@ -6,8 +6,9 @@ import (
 	"github.com/pquerna/otp"
 	"github.com/pquerna/otp/totp"
 	"image/png"
-	"net/url"
 )
+
+//Make sure your local time zone is correct
 
 type IGoogleAuthenticationService interface {
 	GenerateKey(accountName string) (*otp.Key, error)
@@ -26,20 +27,17 @@ func NewGoogleAuthenticationService(issuer string, secret string) IGoogleAuthent
 
 func (this *googleAuthenticationService) GenerateKey(accountName string) (*otp.Key, error) {
 	secretKey := this.issuer + "_" + this.secret + "_" + accountName
-
-	//If You Want to Derive a Secret (Not Recommended), At Least Normalize It
-	secretBase32 := base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString([]byte(secretKey))
-
-	// Make account name URL-safe
-	encodedAccountName := url.QueryEscape(accountName)
-
-	//totp.Generate() is for generating new keys, and it randomizes parts of the key
-	//so we should manually construct the TOTP key (should not
-	key, err := otp.NewKeyFromURL("otpauth://totp/" + this.issuer + ":" + encodedAccountName +
-		"?secret=" + secretBase32 +
-		"&issuer=" + url.QueryEscape(this.issuer) + // just in case
-		"&algorithm=SHA1&digits=6&period=30")
-	return key, err
+	encoder := base32.StdEncoding
+	secretBase32Encoding := encoder.EncodeToString([]byte(secretKey))
+	key, err := totp.Generate(totp.GenerateOpts{
+		Issuer:      this.issuer,
+		AccountName: accountName,
+		Secret:      []byte(secretBase32Encoding), // (Base32-encoded)
+	})
+	if err != nil {
+		return nil, err
+	}
+	return key, nil
 }
 
 func (this *googleAuthenticationService) VerifyOTP(accountName string, otpCode string) bool {
@@ -53,7 +51,6 @@ func (this *googleAuthenticationService) VerifyOTP(accountName string, otpCode s
 }
 
 func (this *googleAuthenticationService) GenerateOTP(accountName string) ([]byte, error) {
-	// Generate TOTP secret
 	key, err := this.GenerateKey(accountName)
 	if err != nil {
 		return nil, err
