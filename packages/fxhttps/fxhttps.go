@@ -52,7 +52,10 @@ func ParseJsonBody[T any](ctx *gin.Context) (T, error) {
 
 func ParseRequestBody[T any](ctx *gin.Context) (T, error) {
 	var result T
-	body, _ := io.ReadAll(ctx.Request.Body)
+	body, ex := io.ReadAll(ctx.Request.Body)
+	if ex != nil {
+		return result, ex
+	}
 	err := json.Unmarshal([]byte(body), &result)
 	if err != nil {
 		return result, err
