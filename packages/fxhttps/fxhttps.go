@@ -1,6 +1,10 @@
 package fxhttps
 
-import "github.com/gin-gonic/gin"
+import (
+	"encoding/json"
+	"github.com/gin-gonic/gin"
+	"io"
+)
 
 func ParsePathParameters(ctx *gin.Context) map[string]string {
 	params := make(map[string]string)
@@ -41,6 +45,16 @@ func ParseFormParameters(ctx *gin.Context) (map[string]string, error) {
 func ParseJsonBody[T any](ctx *gin.Context) (T, error) {
 	var result T
 	if err := ctx.ShouldBindJSON(&result); err != nil {
+		return result, err
+	}
+	return result, nil
+}
+
+func ParseRequestBody[T any](ctx *gin.Context) (T, error) {
+	var result T
+	body, _ := io.ReadAll(ctx.Request.Body)
+	err := json.Unmarshal([]byte(body), &result)
+	if err != nil {
 		return result, err
 	}
 	return result, nil
