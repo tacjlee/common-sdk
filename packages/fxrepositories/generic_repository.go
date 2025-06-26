@@ -268,8 +268,8 @@ func (this *genericRepository) ExecuteScalarAsString(query string, params ...any
 	return str, nil
 }
 
-func (this *genericRepository) Create(model interface{}) (any, error) {
-	result := this.db.Create(model)
+func (this *genericRepository) Create(model any) (any, error) {
+	result := this.db.Create(&model)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -278,7 +278,7 @@ func (this *genericRepository) Create(model interface{}) (any, error) {
 
 func (this *genericRepository) Save(record any) (any, error) {
 	// Use db.Save for upsert behavior (Insert or Update if record already exists)
-	result := this.db.Save(record)
+	result := this.db.Save(&record)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -286,7 +286,7 @@ func (this *genericRepository) Save(record any) (any, error) {
 }
 
 func (this *genericRepository) Delete(model any, conditions ...any) (int64, error) {
-	result := this.db.Delete(model, conditions...)
+	result := this.db.Delete(&model, conditions...)
 	if result.Error != nil {
 		return 0, result.Error
 	}
@@ -296,7 +296,7 @@ func (this *genericRepository) Delete(model any, conditions ...any) (int64, erro
 func (this *genericRepository) DeleteAll(models []any) (int64, error) {
 	var rowsEffected int64
 	for _, model := range models {
-		result := this.db.Delete(model)
+		result := this.db.Delete(&model)
 		if result.Error != nil {
 			return 0, fmt.Errorf("failed to delete model %v: %w", model, result.Error)
 		}
