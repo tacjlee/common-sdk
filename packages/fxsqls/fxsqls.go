@@ -22,7 +22,7 @@ func FindFirst[T any](db *gorm.DB, fieldName string, fieldValue any) (T, error) 
 	return result, nil
 }
 
-func FindOptionalObjectById[T any](db *gorm.DB, id interface{}) (fxmodels.Optional[T], error) {
+func FindOptionalObjectById[T any](db *gorm.DB, id interface{}) (*fxmodels.Optional[T], error) {
 	var results T
 	var inputId uuid.UUID
 	inputType := reflect.TypeOf(id)
@@ -31,17 +31,17 @@ func FindOptionalObjectById[T any](db *gorm.DB, id interface{}) (fxmodels.Option
 	} else {
 		parsedUUID, err := uuid.Parse(id.(string))
 		if err != nil {
-			return fxmodels.Optional[T]{Value: nil}, nil
+			return &fxmodels.Optional[T]{Value: nil}, nil
 		}
 		inputId = parsedUUID
 	}
 	if err := db.First(&results, inputId).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return fxmodels.Optional[T]{Value: nil}, nil
+			return &fxmodels.Optional[T]{Value: nil}, nil
 		}
-		return fxmodels.Optional[T]{Value: nil}, err
+		return &fxmodels.Optional[T]{Value: nil}, err
 	}
-	return fxmodels.Optional[T]{Value: &results}, nil
+	return &fxmodels.Optional[T]{Value: &results}, nil
 }
 
 func ExecuteModelList[T any](db *gorm.DB, query string, params ...any) ([]T, error) {
