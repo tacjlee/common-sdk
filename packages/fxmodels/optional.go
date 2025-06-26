@@ -10,6 +10,10 @@ func (o *Optional[T]) IsPresent() bool {
 
 func (o *Optional[T]) Get() T {
 	// If the caller does not need to modify the returned Value
+	if o.Value == nil {
+		var zero T
+		return zero
+	}
 	return *o.Value
 }
 
@@ -18,15 +22,10 @@ func (o *Optional[T]) GetPointer() *T {
 	return o.Value
 }
 
-func (o *Optional[T]) IsNil() bool {
-	return o.Value == nil
-}
-
-func (o *Optional[T]) GetPresentOrEmpty() *T {
-	var model T
+func (o *Optional[T]) GetPresentOrEmpty() T {
 	if o.Value != nil {
-		return o.Value
-	} else {
-		return &model
+		return *o.Value
 	}
+	var model T
+	return model
 }
