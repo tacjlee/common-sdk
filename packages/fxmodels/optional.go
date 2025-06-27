@@ -4,6 +4,9 @@ type Optional[T any] struct {
 	Value *T
 }
 
+// Chỉ đọc dữ liệu, bạn có thể dùng Optional[T] thay vì *Optional[T]
+// o *Optional[T] là con trỏ, thao tác trực tiếp trên đối tượng gốc.
+// o Optional[T] là giá trị, thao tác trên một bản sao.
 func (o *Optional[T]) IsPresent() bool {
 	return o.Value != nil
 }
