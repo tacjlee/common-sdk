@@ -6,6 +6,7 @@ import (
 	"github.com/tacjlee/common-sdk/packages/fxstrings"
 	"gorm.io/gorm"
 	"math"
+	"strconv"
 	"strings"
 )
 
@@ -243,11 +244,24 @@ func (this *genericRepository) ExecuteScalarAsBool(query string, params ...any) 
 	if err != nil {
 		return false, err
 	}
-	str := fmt.Sprintf("%v", value)
-	if str == "1" || str == "true" {
-		return true, nil
-	} else {
+	if value == nil {
 		return false, nil
+	}
+	switch v := value.(type) {
+	case bool:
+		return v, nil
+	case int:
+		return v != 0, nil
+	case int64:
+		return v != 0, nil
+	case float64:
+		return v != 0, nil
+	case []byte:
+		return this.parseBoolFromString(string(v))
+	case string:
+		return this.parseBoolFromString(v)
+	default:
+		return false, fmt.Errorf("unsupported type %T for boolean conversion", value)
 	}
 }
 
@@ -256,7 +270,25 @@ func (this *genericRepository) ExecuteScalarAsLong(query string, params ...any) 
 	if err != nil {
 		return 0, err
 	}
-	return value.(int64), nil
+	if value == nil {
+		return 0, nil
+	}
+	switch v := value.(type) {
+	case int64:
+		return v, nil
+	case int:
+		return int64(v), nil
+	case float64:
+		return int64(v), nil
+	case []uint8:
+		i, convErr := strconv.ParseInt(string(v), 10, 64)
+		if convErr != nil {
+			return 0, fmt.Errorf("cannot parse value: %v", convErr)
+		}
+		return i, nil
+	default:
+		return 0, fmt.Errorf("unsupported type: %T", value)
+	}
 }
 
 func (this *genericRepository) ExecuteScalarAsString(query string, params ...any) (string, error) {
@@ -333,4 +365,15 @@ func (this *genericRepository) buildSortingClause(order string) string {
 func (this *genericRepository) buildCountingQuery(query string) string {
 	result := fmt.Sprintf("Select count(0) from (%s) alias", query)
 	return result
+}
+
+func (this *genericRepository) parseBoolFromString(s string) (bool, error) {
+	switch strings.ToLower(strings.TrimSpace(s)) {
+	case "1", "true", "yes":
+		return true, nil
+	case "0", "false", "no":
+		return false, nil
+	default:
+		return false, fmt.Errorf("cannot convert string %q to bool", s)
+	}
 }
