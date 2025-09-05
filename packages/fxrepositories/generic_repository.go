@@ -91,12 +91,14 @@ func (this *genericRepository) ExecuteJsonPaging(query string, pageable fxmodels
 		return nil, err
 	}
 	totalPages := int(math.Ceil(float64(totalItems) / float64(pageable.PageSize)))
+	isLastPage := pageable.PageNumber >= totalPages
 	result := make(map[string]any)
 	result["totalItems"] = totalItems
 	result["totalPages"] = totalPages
 	result["pageSize"] = pageable.PageSize
-	result["currentPage"] = pageable.PageNumber
+	result["pageNumber"] = pageable.PageNumber
 	result["items"] = make([]map[string]any, 0)
+	result["isLastPage"] = isLastPage
 
 	if totalItems == 0 || pageable.PageSize <= 0 {
 		return result, nil
