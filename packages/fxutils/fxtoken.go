@@ -4,7 +4,9 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/tacjlee/common-sdk/packages/fxmodels"
+	"strconv"
 	"strings"
 	"time"
 
@@ -110,4 +112,16 @@ func ExtractTokenClaims[T any](jwtToken string) (T, error) {
 		return claims, fmt.Errorf("failed to unmarshal token claims: %v", err)
 	}
 	return claims, nil
+}
+
+func QueryInt(ctx *gin.Context, key string, defaultValue int) int {
+	valStr := ctx.Query(key)
+	if valStr == "" {
+		return defaultValue
+	}
+	val, err := strconv.Atoi(valStr)
+	if err != nil {
+		return defaultValue
+	}
+	return val
 }
