@@ -1,13 +1,15 @@
 package fxrepositories
 
 import (
+	"database/sql"
 	"fmt"
-	"github.com/tacjlee/common-sdk/packages/fxmodels"
-	"github.com/tacjlee/common-sdk/packages/fxstrings"
-	"gorm.io/gorm"
 	"math"
 	"strconv"
 	"strings"
+
+	"github.com/tacjlee/common-sdk/packages/fxmodels"
+	"github.com/tacjlee/common-sdk/packages/fxstrings"
+	"gorm.io/gorm"
 )
 
 type IGenericRepository interface {
@@ -41,7 +43,12 @@ func (this *genericRepository) GetDB() *gorm.DB {
 
 // For update, delete command
 func (this *genericRepository) ExecuteNonQuery(query string, params ...any) (int64, error) {
-	result := this.db.Exec(query, params...)
+	var result *gorm.DB
+	if len(params) == 0 {
+		result = this.db.Exec(query)
+	} else {
+		result = this.db.Exec(query, params...)
+	}
 	if result.Error != nil {
 		return 0, result.Error
 	}
@@ -50,7 +57,13 @@ func (this *genericRepository) ExecuteNonQuery(query string, params ...any) (int
 }
 
 func (this *genericRepository) ExecuteJsonList(query string, params ...any) ([]map[string]any, error) {
-	rows, err := this.db.Raw(query, params...).Rows()
+	var rows *sql.Rows
+	var err error
+	if len(params) == 0 {
+		rows, err = this.db.Raw(query).Rows()
+	} else {
+		rows, err = this.db.Raw(query, params...).Rows()
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -116,7 +129,14 @@ func (this *genericRepository) ExecuteJsonPaging(query string, pageable fxmodels
 }
 
 func (this *genericRepository) ExecuteKeyValueList(keyAlias string, valueAlias string, query string, params ...any) ([]map[string]any, error) {
-	rows, err := this.db.Raw(query, params...).Rows()
+	var rows *sql.Rows
+	var err error
+	if len(params) == 0 {
+		rows, err = this.db.Raw(query).Rows()
+	} else {
+		rows, err = this.db.Raw(query, params...).Rows()
+	}
+	//rows, err := this.db.Raw(query, params...).Rows()
 	if err != nil {
 		return nil, err
 	}
@@ -152,7 +172,13 @@ func (this *genericRepository) ExecuteKeyValueList(keyAlias string, valueAlias s
 }
 
 func (this *genericRepository) ExecuteJsonObject(query string, params ...any) (map[string]any, error) {
-	rows, err := this.db.Raw(query, params...).Rows()
+	var rows *sql.Rows
+	var err error
+	if len(params) == 0 {
+		rows, err = this.db.Raw(query).Rows()
+	} else {
+		rows, err = this.db.Raw(query, params...).Rows()
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -182,7 +208,13 @@ func (this *genericRepository) ExecuteJsonObject(query string, params ...any) (m
 }
 
 func (this *genericRepository) ExecuteStringList(query string, params ...any) ([]string, error) {
-	rows, err := this.db.Raw(query, params...).Rows()
+	var rows *sql.Rows
+	var err error
+	if len(params) == 0 {
+		rows, err = this.db.Raw(query).Rows()
+	} else {
+		rows, err = this.db.Raw(query, params...).Rows()
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -212,7 +244,13 @@ func (this *genericRepository) ExecuteStringList(query string, params ...any) ([
 }
 
 func (this *genericRepository) ExecuteScalar(query string, params ...any) (any, error) {
-	rows, err := this.db.Raw(query, params...).Rows()
+	var rows *sql.Rows
+	var err error
+	if len(params) == 0 {
+		rows, err = this.db.Raw(query).Rows()
+	} else {
+		rows, err = this.db.Raw(query, params...).Rows()
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -242,7 +280,13 @@ func (this *genericRepository) ExecuteScalar(query string, params ...any) (any, 
 }
 
 func (this *genericRepository) ExecuteScalarAsBool(query string, params ...any) (bool, error) {
-	value, err := this.ExecuteScalar(query, params...)
+	var value any
+	var err error
+	if len(params) == 0 {
+		value, err = this.ExecuteScalar(query)
+	} else {
+		value, err = this.ExecuteScalar(query, params...)
+	}
 	if err != nil {
 		return false, err
 	}
@@ -268,7 +312,13 @@ func (this *genericRepository) ExecuteScalarAsBool(query string, params ...any) 
 }
 
 func (this *genericRepository) ExecuteScalarAsLong(query string, params ...any) (int64, error) {
-	value, err := this.ExecuteScalar(query, params...)
+	var value any
+	var err error
+	if len(params) == 0 {
+		value, err = this.ExecuteScalar(query)
+	} else {
+		value, err = this.ExecuteScalar(query, params...)
+	}
 	if err != nil {
 		return 0, err
 	}
@@ -294,7 +344,13 @@ func (this *genericRepository) ExecuteScalarAsLong(query string, params ...any) 
 }
 
 func (this *genericRepository) ExecuteScalarAsString(query string, params ...any) (string, error) {
-	value, err := this.ExecuteScalar(query, params...)
+	var value any
+	var err error
+	if len(params) == 0 {
+		value, err = this.ExecuteScalar(query)
+	} else {
+		value, err = this.ExecuteScalar(query, params...)
+	}
 	if err != nil {
 		return "", err
 	}
