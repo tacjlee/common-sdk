@@ -1,12 +1,13 @@
-package fxsqls
+package fxsql
 
 import (
 	"errors"
 	"fmt"
-	"github.com/google/uuid"
-	"github.com/tacjlee/common-sdk/packages/fxmodels"
-	"gorm.io/gorm"
 	"reflect"
+
+	"github.com/google/uuid"
+	"github.com/tacjlee/common-sdk/packages/fxmodel"
+	"gorm.io/gorm"
 )
 
 func FindFirst[T any](db *gorm.DB, fieldName string, fieldValue any) (T, error) {
@@ -22,7 +23,7 @@ func FindFirst[T any](db *gorm.DB, fieldName string, fieldValue any) (T, error) 
 	return result, nil
 }
 
-func FindOptionalObjectById[T any](db *gorm.DB, id interface{}) (*fxmodels.Optional[T], error) {
+func FindOptionalObjectById[T any](db *gorm.DB, id interface{}) (*fxmodel.Optional[T], error) {
 	var results T
 	var inputId uuid.UUID
 	inputType := reflect.TypeOf(id)
@@ -31,17 +32,17 @@ func FindOptionalObjectById[T any](db *gorm.DB, id interface{}) (*fxmodels.Optio
 	} else {
 		parsedUUID, err := uuid.Parse(id.(string))
 		if err != nil {
-			return &fxmodels.Optional[T]{Value: nil}, nil
+			return &fxmodel.Optional[T]{Value: nil}, nil
 		}
 		inputId = parsedUUID
 	}
 	if err := db.First(&results, inputId).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return &fxmodels.Optional[T]{Value: nil}, nil
+			return &fxmodel.Optional[T]{Value: nil}, nil
 		}
-		return &fxmodels.Optional[T]{Value: nil}, err
+		return &fxmodel.Optional[T]{Value: nil}, err
 	}
-	return &fxmodels.Optional[T]{Value: &results}, nil
+	return &fxmodel.Optional[T]{Value: &results}, nil
 }
 
 func ExecuteModelList[T any](db *gorm.DB, query string, params ...any) ([]T, error) {
@@ -68,15 +69,15 @@ func ExecuteModelObject[T any](db *gorm.DB, query string, params ...any) (T, err
 	return result, nil
 }
 
-func ExecuteOptionalObject[T any](db *gorm.DB, query string, params ...any) (fxmodels.Optional[T], error) {
+func ExecuteOptionalObject[T any](db *gorm.DB, query string, params ...any) (fxmodel.Optional[T], error) {
 	var result T
 	if err := db.Raw(query, params...).First(&result).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return fxmodels.Optional[T]{Value: nil}, nil
+			return fxmodel.Optional[T]{Value: nil}, nil
 		}
-		return fxmodels.Optional[T]{Value: nil}, err
+		return fxmodel.Optional[T]{Value: nil}, err
 	}
-	return fxmodels.Optional[T]{Value: &result}, nil
+	return fxmodel.Optional[T]{Value: &result}, nil
 }
 
 func IsEmpty(value interface{}) bool {

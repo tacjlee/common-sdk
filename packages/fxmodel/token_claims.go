@@ -1,4 +1,4 @@
-package fxmodels
+package fxmodel
 
 import "github.com/golang-jwt/jwt/v4"
 

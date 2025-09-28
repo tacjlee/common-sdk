@@ -1,11 +1,11 @@
-package fxutils
+package fxutil
 
 import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/tacjlee/common-sdk/packages/fxmodels"
+	"github.com/tacjlee/common-sdk/packages/fxmodel"
 	"strconv"
 	"strings"
 	"time"
@@ -83,7 +83,7 @@ func ExtractKeycloakRoles(keycloakToken string) ([]string, error) {
 		return nil, fmt.Errorf("failed to decode token payload: %v", err)
 	}
 	// Parse the payload into a struct
-	var claims fxmodels.TokenClaims
+	var claims fxmodel.TokenClaims
 	if err := json.Unmarshal(payload, &claims); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal token claims: %v", err)
 	}

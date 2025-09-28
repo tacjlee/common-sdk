@@ -1,9 +1,10 @@
-package fxhttps
+package fxhttp
 
 import (
 	"encoding/json"
-	"github.com/gin-gonic/gin"
 	"io"
+
+	"github.com/gin-gonic/gin"
 )
 
 func ParsePathParameters(ctx *gin.Context) map[string]string {

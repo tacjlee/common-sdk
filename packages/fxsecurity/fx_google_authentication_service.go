@@ -1,11 +1,12 @@
-package fxsecurities
+package fxsecurity
 
 import (
 	"bytes"
 	"encoding/base32"
+	"image/png"
+
 	"github.com/pquerna/otp"
 	"github.com/pquerna/otp/totp"
-	"image/png"
 )
 
 //Make sure your local time zone is correct

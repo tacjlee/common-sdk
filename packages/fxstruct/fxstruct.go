@@ -1,8 +1,8 @@
-package fxstructs
+package fxstruct
 
 import (
 	"fmt"
-	"github.com/tacjlee/common-sdk/packages/fxstrings"
+	"github.com/tacjlee/common-sdk/packages/fxstring"
 	"reflect"
 )
 
@@ -24,7 +24,7 @@ func GetAllStructFieldNames(inputStruct any) ([]string, error) {
 	// Iterate over all fields
 	for i := 0; i < t.NumField(); i++ {
 		fieldName := t.Field(i).Name
-		fieldNames[i] = fxstrings.PascalToCamel(fieldName)
+		fieldNames[i] = fxstring.PascalToCamel(fieldName)
 	}
 	return fieldNames, nil
 }
