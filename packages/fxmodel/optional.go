@@ -1,4 +1,4 @@
-package fxmodels
+package fxmodel
 
 type Optional[T any] struct {
 	Value *T

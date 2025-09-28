@@ -1,4 +1,4 @@
-package fxmodels
+package fxmodel
 
 type Pageable struct {
 	PageNumber int                    `json:"pageNumber"`

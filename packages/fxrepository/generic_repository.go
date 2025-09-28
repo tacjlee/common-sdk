@@ -1,4 +1,4 @@
-package fxrepositories
+package fxrepository
 
 import (
 	"database/sql"
@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/tacjlee/common-sdk/packages/fxmodels"
-	"github.com/tacjlee/common-sdk/packages/fxstrings"
+	"github.com/tacjlee/common-sdk/packages/fxmodel"
+	"github.com/tacjlee/common-sdk/packages/fxstring"
 	"gorm.io/gorm"
 )
 
@@ -16,7 +16,7 @@ type IGenericRepository interface {
 	GetDB() *gorm.DB
 	ExecuteNonQuery(command string, params ...any) (int64, error)
 	ExecuteJsonList(query string, params ...any) ([]map[string]any, error)
-	ExecuteJsonPaging(query string, pageable fxmodels.Pageable, params ...any) (map[string]any, error)
+	ExecuteJsonPaging(query string, pageable fxmodel.Pageable, params ...any) (map[string]any, error)
 	ExecuteKeyValueList(keyAlias string, valueAlias string, query string, params ...any) ([]map[string]any, error)
 	ExecuteJsonObject(query string, params ...any) (map[string]any, error)
 	ExecuteStringList(query string, params ...any) ([]string, error)
@@ -88,7 +88,7 @@ func (this *genericRepository) ExecuteJsonList(query string, params ...any) ([]m
 		// Create a map to hold column names and their values
 		rowMap := make(map[string]interface{})
 		for i, col := range columns {
-			jsonField := fxstrings.ToJsonCase(col)
+			jsonField := fxstring.ToJsonCase(col)
 			rowMap[jsonField] = columnsData[i]
 		}
 		// Add the map to the result slice
@@ -97,7 +97,7 @@ func (this *genericRepository) ExecuteJsonList(query string, params ...any) ([]m
 	return result, nil
 }
 
-func (this *genericRepository) ExecuteJsonPaging(query string, pageable fxmodels.Pageable, params ...any) (map[string]any, error) {
+func (this *genericRepository) ExecuteJsonPaging(query string, pageable fxmodel.Pageable, params ...any) (map[string]any, error) {
 	countingSql := this.buildCountingQuery(query)
 	totalItems, err := this.ExecuteScalarAsLong(countingSql, params...)
 	if err != nil {
@@ -200,7 +200,7 @@ func (this *genericRepository) ExecuteJsonObject(query string, params ...any) (m
 			return nil, ex
 		}
 		for i, col := range columns {
-			jsonField := fxstrings.ToJsonCase(col)
+			jsonField := fxstring.ToJsonCase(col)
 			rowMap[jsonField] = columnsData[i]
 		}
 	}
@@ -235,7 +235,7 @@ func (this *genericRepository) ExecuteStringList(query string, params ...any) ([
 		if ex := rows.Scan(columnPointers...); ex != nil {
 			return nil, ex
 		}
-		strValue := fxstrings.ToString(columnsData[0])
+		strValue := fxstring.ToString(columnsData[0])
 		if strValue != "" {
 			result = append(result, strValue)
 		}
@@ -398,7 +398,7 @@ func (this *genericRepository) DeleteAll(models []any) (int64, error) {
 // ----------------------------------------------------------------------------------------
 // Private functions
 // ----------------------------------------------------------------------------------------
-func (this *genericRepository) buildLimitingClause(page fxmodels.Pageable) string {
+func (this *genericRepository) buildLimitingClause(page fxmodel.Pageable) string {
 	offset := page.PageSize * (page.PageNumber - 1)
 	result := fmt.Sprint(" LIMIT ", page.PageSize, " OFFSET ", offset)
 	return result

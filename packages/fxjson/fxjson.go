@@ -1,4 +1,4 @@
-package fxjsons
+package fxjson
 
 import (
 	"encoding/json"

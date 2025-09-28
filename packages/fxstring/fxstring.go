@@ -1,4 +1,4 @@
-package fxstrings
+package fxstring
 
 import (
 	"encoding/json"

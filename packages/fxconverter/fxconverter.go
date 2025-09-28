@@ -1,4 +1,4 @@
-package fxconverters
+package fxconverter
 
 import (
 	"encoding/json"
