@@ -3,6 +3,7 @@ package fxconverter
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 )
 
 func BoolToAny[T any](value bool) (T, error) {
@@ -23,4 +24,43 @@ func JsonToStruct[T any](jsonData string) (T, error) {
 		return zeroValue, err
 	}
 	return zeroValue, nil
+}
+
+func ToIntDefault(s string, defaultVal int) int {
+	val, err := strconv.Atoi(s)
+	if err != nil {
+		return defaultVal
+	}
+	return val
+}
+
+func ToLongDefault(s string, defaultVal int64) int64 {
+	val, err := strconv.ParseInt(s, 10, 64)
+	if err != nil {
+		return defaultVal
+	}
+	return val
+}
+
+func ToBoolDefault(s string, defaultVal bool) bool {
+	val, err := strconv.ParseBool(s)
+	if err != nil {
+		return defaultVal
+	}
+	return val
+}
+
+func ToFloatDefault(s string, defaultVal float64) float64 {
+	val, err := strconv.ParseFloat(s, 64)
+	if err != nil {
+		return defaultVal
+	}
+	return val
+}
+
+func ToStringDefault(s string, defaultVal string) string {
+	if s == "" {
+		return defaultVal
+	}
+	return s
 }
