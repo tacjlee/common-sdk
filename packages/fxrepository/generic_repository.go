@@ -89,7 +89,12 @@ func (this *genericRepository) ExecuteJsonList(query string, params ...any) ([]m
 		rowMap := make(map[string]interface{})
 		for i, col := range columns {
 			jsonField := fxstring.ToJsonCase(col)
-			rowMap[jsonField] = columnsData[i]
+			// Convert []byte to string to avoid base64 encoding in JSON
+			if b, ok := columnsData[i].([]byte); ok {
+				rowMap[jsonField] = string(b)
+			} else {
+				rowMap[jsonField] = columnsData[i]
+			}
 		}
 		// Add the map to the result slice
 		result = append(result, rowMap)
@@ -163,8 +168,17 @@ func (this *genericRepository) ExecuteKeyValueList(keyAlias string, valueAlias s
 		}
 		// Create a map to hold column names and their values
 		rowMap := make(map[string]interface{})
-		rowMap[keyAlias] = columnsData[0]
-		rowMap[valueAlias] = columnsData[1]
+		// Convert []byte to string to avoid base64 encoding in JSON
+		if b, ok := columnsData[0].([]byte); ok {
+			rowMap[keyAlias] = string(b)
+		} else {
+			rowMap[keyAlias] = columnsData[0]
+		}
+		if b, ok := columnsData[1].([]byte); ok {
+			rowMap[valueAlias] = string(b)
+		} else {
+			rowMap[valueAlias] = columnsData[1]
+		}
 		// Add the map to the result slice
 		result = append(result, rowMap)
 	}
@@ -201,7 +215,12 @@ func (this *genericRepository) ExecuteJsonObject(query string, params ...any) (m
 		}
 		for i, col := range columns {
 			jsonField := fxstring.ToJsonCase(col)
-			rowMap[jsonField] = columnsData[i]
+			// Convert []byte to string to avoid base64 encoding in JSON
+			if b, ok := columnsData[i].([]byte); ok {
+				rowMap[jsonField] = string(b)
+			} else {
+				rowMap[jsonField] = columnsData[i]
+			}
 		}
 	}
 	return rowMap, nil
