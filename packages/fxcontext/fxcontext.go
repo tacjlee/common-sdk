@@ -77,3 +77,13 @@ func GetCompanyID(ctx *gin.Context) int {
 	}
 	return 0
 }
+
+// GetOrgUnitID retrieves the organization unit ID from the Gin context
+func GetOrgUnitID(ctx *gin.Context) int {
+	if val, exists := ctx.Get("orgUnitID"); exists {
+		if orgUnitID, ok := val.(int); ok {
+			return orgUnitID
+		}
+	}
+	return 0
+}
