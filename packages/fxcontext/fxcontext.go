@@ -58,26 +58,6 @@ func GetUsername(ctx *gin.Context) string {
 	return ""
 }
 
-// GetCompanyUUID retrieves the company UUID from the Gin context
-func GetCompanyUUID(ctx *gin.Context) string {
-	if val, exists := ctx.Get("companyUUID"); exists {
-		if companyUUID, ok := val.(string); ok {
-			return companyUUID
-		}
-	}
-	return ""
-}
-
-// GetCompanyID retrieves the company ID from the Gin context
-func GetCompanyID(ctx *gin.Context) int {
-	if val, exists := ctx.Get("companyID"); exists {
-		if companyID, ok := val.(int); ok {
-			return companyID
-		}
-	}
-	return 0
-}
-
 // GetOrgUnitID retrieves the organization unit ID from the Gin context
 func GetOrgUnitID(ctx *gin.Context) int {
 	if val, exists := ctx.Get("orgUnitID"); exists {
