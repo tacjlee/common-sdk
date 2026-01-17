@@ -8,6 +8,7 @@ require (
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/golang-jwt/jwt/v4 v4.5.1
 	github.com/google/uuid v1.6.0
+	github.com/hashicorp/consul/api v1.28.2
 	github.com/pquerna/otp v1.4.0
 	gorm.io/gorm v1.25.7
 )
