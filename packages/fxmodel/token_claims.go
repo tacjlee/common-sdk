@@ -19,7 +19,7 @@ type TokenClaims struct {
 
 // JWTClaims for gauth-service tokens
 type JWTClaims struct {
-	UserID   int    `json:"user_id"`
+	UserID   string `json:"user_id"`
 	Username string `json:"username"`
 	Email    string `json:"email"`
 	Role     string `json:"role"`
