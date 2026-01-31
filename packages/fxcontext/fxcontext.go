@@ -19,13 +19,13 @@ func DefaultQueryInt(ctx *gin.Context, key string, defaultValue int) int {
 }
 
 // GetUserID retrieves the user ID from the Gin context
-func GetUserID(ctx *gin.Context) int {
+func GetUserID(ctx *gin.Context) string {
 	if val, exists := ctx.Get("userID"); exists {
-		if userID, ok := val.(int); ok {
+		if userID, ok := val.(string); ok {
 			return userID
 		}
 	}
-	return 0
+	return ""
 }
 
 // GetEmail retrieves the email from the Gin context
@@ -59,11 +59,21 @@ func GetUsername(ctx *gin.Context) string {
 }
 
 // GetOrgUnitID retrieves the organization unit ID from the Gin context
-func GetOrgUnitID(ctx *gin.Context) int {
+func GetOrgUnitID(ctx *gin.Context) string {
 	if val, exists := ctx.Get("orgUnitID"); exists {
-		if orgUnitID, ok := val.(int); ok {
+		if orgUnitID, ok := val.(string); ok {
 			return orgUnitID
 		}
 	}
-	return 0
+	return ""
+}
+
+// GetTenantID retrieves the tenant ID from the Gin context
+func GetTenantID(ctx *gin.Context) string {
+	if val, exists := ctx.Get("tenantID"); exists {
+		if orgUnitID, ok := val.(string); ok {
+			return orgUnitID
+		}
+	}
+	return ""
 }
