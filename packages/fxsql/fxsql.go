@@ -1,97 +1,41 @@
 package fxsql
 
 import (
-	"errors"
-	"fmt"
 	"reflect"
 
-	"github.com/google/uuid"
 	"github.com/tacjlee/common-sdk/packages/fxmodel"
+	"github.com/tacjlee/common-sdk/packages/fxrepository"
 	"gorm.io/gorm"
 )
 
+// The typed query logic now lives on *fxrepository.GenericRepository as generic
+// methods (Go 1.27). These free functions are retained as thin shims so existing
+// callers keep compiling; new code should prefer fxrepository.New(db).<Method>[T].
+
 func FindFirst[T any](db *gorm.DB, fieldName string, fieldValue any) (T, error) {
-	var result T
-	var params map[string]any
-	params = make(map[string]any)
-	params[fieldName] = fieldValue
-	query := db.Where(params)
-	err := query.First(&result).Error
-	if err != nil {
-		return result, err
-	}
-	return result, nil
+	return fxrepository.New(db).FindFirst[T](fieldName, fieldValue)
 }
 
 func FindOptionalObjectById[T any](db *gorm.DB, id interface{}) (*fxmodel.Optional[T], error) {
-	var results T
-	var inputId uuid.UUID
-	inputType := reflect.TypeOf(id)
-	if inputType == reflect.TypeOf(uuid.UUID{}) {
-		inputId = id.(uuid.UUID)
-	} else {
-		parsedUUID, err := uuid.Parse(id.(string))
-		if err != nil {
-			return &fxmodel.Optional[T]{Value: nil}, nil
-		}
-		inputId = parsedUUID
-	}
-	if err := db.First(&results, inputId).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return &fxmodel.Optional[T]{Value: nil}, nil
-		}
-		return &fxmodel.Optional[T]{Value: nil}, err
-	}
-	return &fxmodel.Optional[T]{Value: &results}, nil
+	return fxrepository.New(db).FindOptionalObjectById[T](id)
 }
 
 func ExecuteModelList[T any](db *gorm.DB, query string, params ...any) ([]T, error) {
-	var results []T
-	tx := db.Raw(query, params...).Scan(&results)
-	if tx.Error != nil {
-		if tx.Error == gorm.ErrRecordNotFound {
-			return results, nil
-		}
-		return nil, fmt.Errorf("error executing query: %w", tx.Error)
-	}
-	return results, nil
+	return fxrepository.New(db).ExecuteModelList[T](query, params...)
 }
 
 func ExecuteModelObject[T any](db *gorm.DB, query string, params ...any) (T, error) {
-	var result T
-	if err := db.Raw(query, params...).First(&result).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return result, nil
-		}
-		// If there is an error, return nil
-		return result, err
-	}
-	return result, nil
+	return fxrepository.New(db).ExecuteModelObject[T](query, params...)
 }
 
 func ExecuteOptionalObject[T any](db *gorm.DB, query string, params ...any) (fxmodel.Optional[T], error) {
-	var result T
-	if err := db.Raw(query, params...).First(&result).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return fxmodel.Optional[T]{Value: nil}, nil
-		}
-		return fxmodel.Optional[T]{Value: nil}, err
-	}
-	return fxmodel.Optional[T]{Value: &result}, nil
+	return fxrepository.New(db).ExecuteOptionalObject[T](query, params...)
+}
+
+func DeleteAll[T any](db *gorm.DB, models []T) (int64, error) {
+	return fxrepository.New(db).DeleteModels[T](models)
 }
 
 func IsEmpty(value interface{}) bool {
 	return reflect.DeepEqual(value, reflect.Zero(reflect.TypeOf(value)).Interface())
-}
-
-func DeleteAll[T any](db *gorm.DB, models []T) (int64, error) {
-	var rowsEffected int64
-	for _, model := range models {
-		result := db.Delete(model)
-		if result.Error != nil {
-			return 0, fmt.Errorf("failed to delete model %v: %w", model, result.Error)
-		}
-		rowsEffected += result.RowsAffected
-	}
-	return rowsEffected, nil
 }

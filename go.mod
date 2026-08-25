@@ -1,6 +1,6 @@
 module github.com/tacjlee/common-sdk
 
-go 1.26
+go 1.27.0
 
 require (
 	github.com/dgraph-io/ristretto v0.2.0

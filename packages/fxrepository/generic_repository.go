@@ -2,16 +2,23 @@ package fxrepository
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"math"
+	"reflect"
 	"strconv"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/tacjlee/common-sdk/packages/fxmodel"
 	"github.com/tacjlee/common-sdk/packages/fxstring"
 	"gorm.io/gorm"
 )
 
+// IGenericRepository is kept for backward compatibility with existing consumers
+// that inject the repository as an interface. It only exposes the non-generic
+// methods, because interface methods cannot declare type parameters. Typed
+// (generic) operations live directly on *GenericRepository.
 type IGenericRepository interface {
 	GetDB() *gorm.DB
 	ExecuteNonQuery(command string, params ...any) (int64, error)
@@ -29,20 +36,36 @@ type IGenericRepository interface {
 	Delete(model any, conditions ...any) (int64, error)
 	DeleteAll(models []any) (int64, error)
 }
-type genericRepository struct {
+
+type GenericRepository struct {
 	db *gorm.DB
 }
 
-func NewGenericRepository(db *gorm.DB) IGenericRepository {
-	return &genericRepository{db: db}
+// New builds a repository bound to db. Prefer this and use the concrete
+// *GenericRepository so the generic (typed) methods are reachable.
+func New(db *gorm.DB) *GenericRepository {
+	return &GenericRepository{db: db}
 }
 
-func (this *genericRepository) GetDB() *gorm.DB {
+// NewGenericRepository is retained for backward compatibility. It returns the
+// interface, so callers keep the non-generic surface; switch to New to reach
+// the typed methods.
+func NewGenericRepository(db *gorm.DB) IGenericRepository {
+	return New(db)
+}
+
+func (this *GenericRepository) GetDB() *gorm.DB {
 	return this.db
 }
 
+// With returns a repository bound to a different *gorm.DB (e.g. a transaction
+// handle), so typed methods can run inside db.Transaction(func(tx){...}).
+func (this *GenericRepository) With(db *gorm.DB) *GenericRepository {
+	return &GenericRepository{db: db}
+}
+
 // For update, delete command
-func (this *genericRepository) ExecuteNonQuery(query string, params ...any) (int64, error) {
+func (this *GenericRepository) ExecuteNonQuery(query string, params ...any) (int64, error) {
 	var result *gorm.DB
 	if len(params) == 0 {
 		result = this.db.Exec(query)
@@ -56,7 +79,7 @@ func (this *genericRepository) ExecuteNonQuery(query string, params ...any) (int
 	return rowsAffected, nil
 }
 
-func (this *genericRepository) ExecuteJsonList(query string, params ...any) ([]map[string]any, error) {
+func (this *GenericRepository) ExecuteJsonList(query string, params ...any) ([]map[string]any, error) {
 	var rows *sql.Rows
 	var err error
 	if len(params) == 0 {
@@ -102,7 +125,7 @@ func (this *genericRepository) ExecuteJsonList(query string, params ...any) ([]m
 	return result, nil
 }
 
-func (this *genericRepository) ExecuteJsonPaging(query string, pageable fxmodel.Pageable, params ...any) (map[string]any, error) {
+func (this *GenericRepository) ExecuteJsonPaging(query string, pageable fxmodel.Pageable, params ...any) (map[string]any, error) {
 	countingSql := this.buildCountingQuery(query)
 	totalItems, err := this.ExecuteScalarAsLong(countingSql, params...)
 	if err != nil {
@@ -133,7 +156,7 @@ func (this *genericRepository) ExecuteJsonPaging(query string, pageable fxmodel.
 	return result, nil
 }
 
-func (this *genericRepository) ExecuteKeyValueList(keyAlias string, valueAlias string, query string, params ...any) ([]map[string]any, error) {
+func (this *GenericRepository) ExecuteKeyValueList(keyAlias string, valueAlias string, query string, params ...any) ([]map[string]any, error) {
 	var rows *sql.Rows
 	var err error
 	if len(params) == 0 {
@@ -185,7 +208,7 @@ func (this *genericRepository) ExecuteKeyValueList(keyAlias string, valueAlias s
 	return result, nil
 }
 
-func (this *genericRepository) ExecuteJsonObject(query string, params ...any) (map[string]any, error) {
+func (this *GenericRepository) ExecuteJsonObject(query string, params ...any) (map[string]any, error) {
 	var rows *sql.Rows
 	var err error
 	if len(params) == 0 {
@@ -226,7 +249,7 @@ func (this *genericRepository) ExecuteJsonObject(query string, params ...any) (m
 	return rowMap, nil
 }
 
-func (this *genericRepository) ExecuteStringList(query string, params ...any) ([]string, error) {
+func (this *GenericRepository) ExecuteStringList(query string, params ...any) ([]string, error) {
 	var rows *sql.Rows
 	var err error
 	if len(params) == 0 {
@@ -262,7 +285,7 @@ func (this *genericRepository) ExecuteStringList(query string, params ...any) ([
 	return result, nil
 }
 
-func (this *genericRepository) ExecuteScalar(query string, params ...any) (any, error) {
+func (this *GenericRepository) ExecuteScalar(query string, params ...any) (any, error) {
 	var rows *sql.Rows
 	var err error
 	if len(params) == 0 {
@@ -298,7 +321,7 @@ func (this *genericRepository) ExecuteScalar(query string, params ...any) (any, 
 	return result, nil
 }
 
-func (this *genericRepository) ExecuteScalarAsBool(query string, params ...any) (bool, error) {
+func (this *GenericRepository) ExecuteScalarAsBool(query string, params ...any) (bool, error) {
 	var value any
 	var err error
 	if len(params) == 0 {
@@ -330,7 +353,7 @@ func (this *genericRepository) ExecuteScalarAsBool(query string, params ...any) 
 	}
 }
 
-func (this *genericRepository) ExecuteScalarAsLong(query string, params ...any) (int64, error) {
+func (this *GenericRepository) ExecuteScalarAsLong(query string, params ...any) (int64, error) {
 	var value any
 	var err error
 	if len(params) == 0 {
@@ -362,7 +385,7 @@ func (this *genericRepository) ExecuteScalarAsLong(query string, params ...any) 
 	}
 }
 
-func (this *genericRepository) ExecuteScalarAsString(query string, params ...any) (string, error) {
+func (this *GenericRepository) ExecuteScalarAsString(query string, params ...any) (string, error) {
 	var value any
 	var err error
 	if len(params) == 0 {
@@ -377,7 +400,7 @@ func (this *genericRepository) ExecuteScalarAsString(query string, params ...any
 	return str, nil
 }
 
-func (this *genericRepository) Create(model any) (any, error) {
+func (this *GenericRepository) Create(model any) (any, error) {
 	result := this.db.Create(model)
 	if result.Error != nil {
 		return nil, result.Error
@@ -385,7 +408,7 @@ func (this *genericRepository) Create(model any) (any, error) {
 	return model, nil
 }
 
-func (this *genericRepository) Save(record any) (any, error) {
+func (this *GenericRepository) Save(record any) (any, error) {
 	// Use db.Save for upsert behavior (Insert or Update if record already exists)
 	result := this.db.Save(record)
 	if result.Error != nil {
@@ -394,7 +417,7 @@ func (this *genericRepository) Save(record any) (any, error) {
 	return record, nil
 }
 
-func (this *genericRepository) Delete(model any, conditions ...any) (int64, error) {
+func (this *GenericRepository) Delete(model any, conditions ...any) (int64, error) {
 	result := this.db.Delete(model, conditions...)
 	if result.Error != nil {
 		return 0, result.Error
@@ -402,7 +425,100 @@ func (this *genericRepository) Delete(model any, conditions ...any) (int64, erro
 	return result.RowsAffected, nil
 }
 
-func (this *genericRepository) DeleteAll(models []any) (int64, error) {
+func (this *GenericRepository) DeleteAll(models []any) (int64, error) {
+	var rowsEffected int64
+	for _, model := range models {
+		result := this.db.Delete(model)
+		if result.Error != nil {
+			return 0, fmt.Errorf("failed to delete model %v: %w", model, result.Error)
+		}
+		rowsEffected += result.RowsAffected
+	}
+	return rowsEffected, nil
+}
+
+// ----------------------------------------------------------------------------------------
+// Generic (typed) methods — Go 1.27 generic methods. Consolidated from the former
+// fxsql package. Not part of IGenericRepository (interfaces cannot declare type
+// parameters); reach them via the concrete *GenericRepository.
+// ----------------------------------------------------------------------------------------
+
+// FindFirst returns the first row where fieldName == fieldValue, scanned into T.
+func (this *GenericRepository) FindFirst[T any](fieldName string, fieldValue any) (T, error) {
+	var result T
+	params := map[string]any{fieldName: fieldValue}
+	if err := this.db.Where(params).First(&result).Error; err != nil {
+		return result, err
+	}
+	return result, nil
+}
+
+// FindOptionalObjectById looks up a row by primary key (uuid.UUID or its string
+// form), returning an empty Optional when not found or when id is not a UUID.
+func (this *GenericRepository) FindOptionalObjectById[T any](id any) (*fxmodel.Optional[T], error) {
+	var result T
+	var inputId uuid.UUID
+	if reflect.TypeOf(id) == reflect.TypeOf(uuid.UUID{}) {
+		inputId = id.(uuid.UUID)
+	} else if s, ok := id.(string); ok {
+		parsedUUID, err := uuid.Parse(s)
+		if err != nil {
+			return &fxmodel.Optional[T]{Value: nil}, nil
+		}
+		inputId = parsedUUID
+	} else {
+		return &fxmodel.Optional[T]{Value: nil}, nil
+	}
+	if err := this.db.First(&result, inputId).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return &fxmodel.Optional[T]{Value: nil}, nil
+		}
+		return &fxmodel.Optional[T]{Value: nil}, err
+	}
+	return &fxmodel.Optional[T]{Value: &result}, nil
+}
+
+// ExecuteModelList runs a raw query and scans all rows into []T.
+func (this *GenericRepository) ExecuteModelList[T any](query string, params ...any) ([]T, error) {
+	var results []T
+	tx := this.db.Raw(query, params...).Scan(&results)
+	if tx.Error != nil {
+		if errors.Is(tx.Error, gorm.ErrRecordNotFound) {
+			return results, nil
+		}
+		return nil, fmt.Errorf("error executing query: %w", tx.Error)
+	}
+	return results, nil
+}
+
+// ExecuteModelObject runs a raw query and scans the first row into T. A missing
+// row returns the zero value of T and a nil error.
+func (this *GenericRepository) ExecuteModelObject[T any](query string, params ...any) (T, error) {
+	var result T
+	if err := this.db.Raw(query, params...).First(&result).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return result, nil
+		}
+		return result, err
+	}
+	return result, nil
+}
+
+// ExecuteOptionalObject runs a raw query and returns the first row as an
+// Optional[T], empty when no row matches.
+func (this *GenericRepository) ExecuteOptionalObject[T any](query string, params ...any) (fxmodel.Optional[T], error) {
+	var result T
+	if err := this.db.Raw(query, params...).First(&result).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return fxmodel.Optional[T]{Value: nil}, nil
+		}
+		return fxmodel.Optional[T]{Value: nil}, err
+	}
+	return fxmodel.Optional[T]{Value: &result}, nil
+}
+
+// DeleteModels deletes each model in the slice and returns the total rows affected.
+func (this *GenericRepository) DeleteModels[T any](models []T) (int64, error) {
 	var rowsEffected int64
 	for _, model := range models {
 		result := this.db.Delete(model)
@@ -417,13 +533,13 @@ func (this *genericRepository) DeleteAll(models []any) (int64, error) {
 // ----------------------------------------------------------------------------------------
 // Private functions
 // ----------------------------------------------------------------------------------------
-func (this *genericRepository) buildLimitingClause(page fxmodel.Pageable) string {
+func (this *GenericRepository) buildLimitingClause(page fxmodel.Pageable) string {
 	offset := page.PageSize * (page.PageNumber - 1)
 	result := fmt.Sprint(" LIMIT ", page.PageSize, " OFFSET ", offset)
 	return result
 }
 
-func (this *genericRepository) buildSortingClause(order string) string {
+func (this *GenericRepository) buildSortingClause(order string) string {
 	if order == "" {
 		return ""
 	}
@@ -439,12 +555,12 @@ func (this *genericRepository) buildSortingClause(order string) string {
 	return result
 }
 
-func (this *genericRepository) buildCountingQuery(query string) string {
+func (this *GenericRepository) buildCountingQuery(query string) string {
 	result := fmt.Sprintf("Select count(0) from (%s) alias", query)
 	return result
 }
 
-func (this *genericRepository) parseBoolFromString(s string) (bool, error) {
+func (this *GenericRepository) parseBoolFromString(s string) (bool, error) {
 	switch strings.ToLower(strings.TrimSpace(s)) {
 	case "1", "true", "yes":
 		return true, nil
